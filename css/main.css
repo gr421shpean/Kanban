@@ -25,3 +25,24 @@ h1{
     width: 500px;
 }
 
+.input {
+    width: calc(100% - 10px);
+    padding: 8px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+}
+
+form label {
+    font-weight: bold;
+}
+
+form button {
+    height: 25px;
+    color: rgb(247, 225, 215);
+    background-color: rgb(74, 87, 89);
+    border: none;
+    border-radius:10px;
+}
+
