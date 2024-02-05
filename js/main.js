@@ -135,7 +135,47 @@ Vue.component('app', {
             }
             this.saveTasks();
         }
-    }
+    },
+    moveTask(task) {
+        const indexPlan = this.planTask.indexOf(task);
+        const indexWork = this.workTask.indexOf(task);
+        const indexTesting = this.testingTask.indexOf(task);
+
+        if (indexPlan !== -1) {
+            this.planTask.splice(indexPlan, 1);
+            this.workTask.push(task);
+        } else if (indexWork !== -1) {
+            this.workTask.splice(indexWork, 1);
+            this.testingTask.push(task);
+        } else if (indexTesting !== -1) {
+            this.testingTask.splice(indexTesting, 1);
+            this.completedTask.push(task);
+            if (task.deadline >= task.createdDate) {
+                task.check = 'Выполнено в срок';
+            } else {
+                task.check = 'Просрочено';
+            }
+        }
+        this.saveTasks();
+    },
+    moveToNext(task) {
+        const indexWork = this.workTask.indexOf(task);
+        const indexTesting = this.testingTask.indexOf(task);
+
+        if (indexWork !== -1) {
+            this.workTask.splice(indexWork, 1);
+            this.testingTask.push(task);
+        } else if (indexTesting !== -1) {
+            this.testingTask.splice(indexTesting, 1);
+            this.completedTask.push(task);
+            if (task.deadline >= task.createdDate) {
+                task.check = 'Выполнено в срок';
+            } else {
+                task.check = 'Просрочено';
+            }
+        }
+        this.saveTasks();
+    },
 });
 new Vue({
     el: '#app'
