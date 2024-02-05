@@ -1,5 +1,4 @@
 body {
-
     margin: 0;
     padding: 0;
     background-color: rgb(203, 192, 211);
@@ -9,6 +8,7 @@ h1{
     font-family: 'Dancing Script', cursive;
     text-align: center;
 }
+
 
 #app {
     display: flex;
@@ -58,7 +58,6 @@ form button {
     border-radius: 20px;
     box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
     width: 250px;
-    margin-right: 40px; /* Добавили отступ между колонками */
 }
 
 .title_column {
@@ -67,8 +66,42 @@ form button {
 
 .task {
     margin-bottom: 30px;
-    padding: 15px; /* Добавили отступы внутри задачи */
+    padding: 15px;
     border-radius: 20px;
     background-color:rgb(247, 225, 215);
     box-shadow: 0 2px 4px rgb(247, 225, 215);
+}
+
+.task h3 {
+    margin-top: 0;
+}
+
+.task span {
+    font-size: 14px;
+    color: #666;
+}
+
+.task button {
+    margin-top: 20px;
+    padding: 6px 12px;
+    background-color: rgb(74, 87, 89);
+    color: rgb(247, 225, 215);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+
+
+textarea {
+    width: calc(100% - 10px);
+    padding: 8px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+}
+
+.task + .task {
+    margin-top: 20px;
 }

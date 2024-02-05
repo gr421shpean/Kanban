@@ -39,7 +39,74 @@ Vue.component('task-form', {
             }
         }
     }
-})
+});
+
+Vue.component('task', {
+    props: ['task', 'type'],
+    data() {
+        return {
+            editingDescription: false,
+            editedDescription: '',
+            returnReason: ''
+        };
+    },
+    methods: {
+        handleEditDescription() {
+            if (this.editingDescription) {
+                this.task.description = this.editedDescription;
+                this.task.lastEdited = new Date().toLocaleString();
+            }
+            this.editingDescription = !this.editingDescription;
+        },
+        handleDeleteTask() {
+            this.$emit('delete', this.task);
+        },
+        handleMoveTask() {
+            if (this.type === 'plan') {
+                this.$emit('move', this.task);
+            } else if (this.type === 'work') {
+                this.$emit('move-to-next', this.task);
+            }
+        },
+        handleMoveToNext() {
+            if (this.type === 'work') {
+                this.$emit('move-to-next', this.task);
+            }
+        },
+        handleReturnToPrevious() {
+            if (this.returnReason !== '') {
+                this.task.reason = this.returnReason;
+                this.$emit('return', this.task);
+            } else {
+                alert("Введите причину возврата");
+            }
+        },
+        handleCompleteTask() {
+            this.$emit('complete', this.task);
+        }
+    },
+    template: `
+    <div class="task">
+        <span>Создано: {{ task.createdDate }}</span>
+        <h3>{{ task.title }}</h3>
+        <p v-if="!editingDescription">{{ task.description }}</p>
+        <textarea v-model="editedDescription" v-if="editingDescription"></textarea>
+        <span v-if="task.lastEdited">Отредактировано: {{ task.lastEdited }}</span><br><br>
+        <span>Срок сдачи: {{ task.deadline }}</span><br><br>
+        <button v-if="type === 'plan'" @click="handleDeleteTask">Удалить</button>
+        <button v-if="type !== 'completed'" @click="handleEditDescription">{{ editingDescription ? 'Сохранить' : 'Редактировать' }}</button>
+        <button v-if="type === 'plan'" @click="handleMoveTask">Переместить</button>
+        <button v-if="type === 'work'" @click="handleMoveToNext">Переместить</button>
+        <button v-if="type === 'testing'" @click="handleReturnToPrevious">Вернуть</button>
+        <button v-if="type === 'testing'" @click="handleCompleteTask">Выполнено</button>
+        <br>
+        <textarea v-if="type === 'testing'" v-model="returnReason" placeholder="Введите причину возврата"></textarea>
+        <span v-if="type === 'work' && task.reason">Причина возврата: {{ task.reason }}</span>
+        <span v-if="type === 'completed'">{{ task.check }}</span>
+    </div>
+    `
+});
+
 Vue.component('task-column', {
     props: ['title', 'tasks', 'type'],
     template: `
@@ -68,28 +135,9 @@ Vue.component('task-column', {
         completeTask(task) {
             this.$emit('complete-task', task);
         }
-    },
-    template: `
-    <div class="task">
-        <span>Создано: {{ task.createdDate }}</span>
-        <h3>{{ task.title }}</h3>
-        <p v-if="!editingDescription">{{ task.description }}</p>
-        <textarea v-model="editedDescription" v-if="editingDescription"></textarea>
-        <span v-if="task.lastEdited">Отредактировано: {{ task.lastEdited }}</span><br><br>
-        <span>Срок сдачи: {{ task.deadline }}</span><br><br>
-        <button v-if="type === 'plan'" @click="handleDeleteTask">Удалить</button>
-        <button v-if="type !== 'completed'" @click="handleEditDescription">{{ editingDescription ? 'Сохранить' : 'Редактировать' }}</button>
-        <button v-if="type === 'plan'" @click="handleMoveTask">Переместить</button>
-        <button v-if="type === 'work'" @click="handleMoveToNext">Переместить</button>
-        <button v-if="type === 'testing'" @click="handleReturnToPrevious">Вернуть</button>
-        <button v-if="type === 'testing'" @click="handleCompleteTask">Выполнено</button>
-        <br>
-        <textarea v-if="type === 'testing'" v-model="returnReason" placeholder="Введите причину возврата"></textarea>
-        <span v-if="type === 'work' && task.reason">Причина возврата: {{ task.reason }}</span>
-        <span v-if="type === 'completed'">{{ task.check }}</span>
-    </div>
-    `
+    }
 });
+
 Vue.component('app', {
     template: `
     <div id="app">
@@ -134,90 +182,82 @@ Vue.component('app', {
                 this.completedTask.splice(indexCompleted, 1);
             }
             this.saveTasks();
-        }
-    },
-    moveTask(task) {
-        const indexPlan = this.planTask.indexOf(task);
-        const indexWork = this.workTask.indexOf(task);
-        const indexTesting = this.testingTask.indexOf(task);
+        },
+        moveTask(task) {
+            const indexPlan = this.planTask.indexOf(task);
+            const indexWork = this.workTask.indexOf(task);
+            const indexTesting = this.testingTask.indexOf(task);
 
-        if (indexPlan !== -1) {
-            this.planTask.splice(indexPlan, 1);
+            if (indexPlan !== -1) {
+                this.planTask.splice(indexPlan, 1);
+                this.workTask.push(task);
+            } else if (indexWork !== -1) {
+                this.workTask.splice(indexWork, 1);
+                this.testingTask.push(task);
+            } else if (indexTesting !== -1) {
+                this.testingTask.splice(indexTesting, 1);
+                this.completedTask.push(task);
+                if (task.deadline >= task.createdDate) {
+                    task.check = 'Выполнено в срок';
+                } else {
+                    task.check = 'Просрочено';
+                }
+            }
+            this.saveTasks();
+        },
+        moveToNext(task) {
+            const indexWork = this.workTask.indexOf(task);
+            const indexTesting = this.testingTask.indexOf(task);
+
+            if (indexWork !== -1) {
+                this.workTask.splice(indexWork, 1);
+                this.testingTask.push(task);
+            } else if (indexTesting !== -1) {
+                this.testingTask.splice(indexTesting, 1);
+                this.completedTask.push(task);
+                if (task.deadline >= task.createdDate) {
+                    task.check = 'Выполнено в срок';
+                } else {
+                    task.check = 'Просрочено';
+                }
+            }
+            this.saveTasks();
+        },
+        returnTask(task) {
+            this.testingTask.splice(this.testingTask.indexOf(task), 1);
             this.workTask.push(task);
-        } else if (indexWork !== -1) {
-            this.workTask.splice(indexWork, 1);
-            this.testingTask.push(task);
-        } else if (indexTesting !== -1) {
-            this.testingTask.splice(indexTesting, 1);
+            this.saveTasks();
+        },
+        completeTask(task) {
+            this.testingTask.splice(this.testingTask.indexOf(task), 1);
             this.completedTask.push(task);
             if (task.deadline >= task.createdDate) {
                 task.check = 'Выполнено в срок';
             } else {
                 task.check = 'Просрочено';
             }
-        }
-        this.saveTasks();
-    },
-    moveToNext(task) {
-        const indexWork = this.workTask.indexOf(task);
-        const indexTesting = this.testingTask.indexOf(task);
-
-        if (indexWork !== -1) {
-            this.workTask.splice(indexWork, 1);
-            this.testingTask.push(task);
-        } else if (indexTesting !== -1) {
-            this.testingTask.splice(indexTesting, 1);
-            this.completedTask.push(task);
-            if (task.deadline >= task.createdDate) {
-                task.check = 'Выполнено в срок';
-            } else {
-                task.check = 'Просрочено';
+            this.saveTasks();
+        },
+        saveTasks() {
+            localStorage.setItem('tasks', JSON.stringify({
+                planTask: this.planTask,
+                workTask: this.workTask,
+                testingTask: this.testingTask,
+                completedTask: this.completedTask
+            }));
+        },
+        loadTasks() {
+            const tasksData = JSON.parse(localStorage.getItem('tasks'));
+            if (tasksData) {
+                this.planTask = tasksData.planTask || [];
+                this.workTask = tasksData.workTask || [];
+                this.testingTask = tasksData.testingTask || [];
+                this.completedTask = tasksData.completedTask || [];
             }
         }
-        this.saveTasks();
-    },
-    moveToNext(task) {
-        const indexWork = this.workTask.indexOf(task);
-        const indexTesting = this.testingTask.indexOf(task);
-
-        if (indexWork !== -1) {
-            this.workTask.splice(indexWork, 1);
-            this.testingTask.push(task);
-        } else if (indexTesting !== -1) {
-            this.testingTask.splice(indexTesting, 1);
-            this.completedTask.push(task);
-            if (task.deadline >= task.createdDate) {
-                task.check = 'Выполнено в срок';
-            } else {
-                task.check = 'Просрочено';
-            }
-        }
-        this.saveTasks();
-    },
-    returnTask(task) {
-        this.testingTask.splice(this.testingTask.indexOf(task), 1);
-        this.workTask.push(task);
-        this.saveTasks();
-    },
-    completeTask(task) {
-        this.testingTask.splice(this.testingTask.indexOf(task), 1);
-        this.completedTask.push(task);
-        if (task.deadline >= task.createdDate) {
-            task.check = 'Выполнено в срок';
-        } else {
-            task.check = 'Просрочено';
-        }
-        this.saveTasks();
-    },
-    saveTasks() {
-        localStorage.setItem('tasks', JSON.stringify({
-            planTask: this.planTask,
-            workTask: this.workTask,
-            testingTask: this.testingTask,
-            completedTask: this.completedTask
-        }));
     }
 });
+
 new Vue({
     el: '#app'
 });
