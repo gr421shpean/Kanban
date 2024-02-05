@@ -68,7 +68,27 @@ Vue.component('task-column', {
         completeTask(task) {
             this.$emit('complete-task', task);
         }
-    }
+    },
+    template: `
+    <div class="task">
+        <span>Создано: {{ task.createdDate }}</span>
+        <h3>{{ task.title }}</h3>
+        <p v-if="!editingDescription">{{ task.description }}</p>
+        <textarea v-model="editedDescription" v-if="editingDescription"></textarea>
+        <span v-if="task.lastEdited">Отредактировано: {{ task.lastEdited }}</span><br><br>
+        <span>Срок сдачи: {{ task.deadline }}</span><br><br>
+        <button v-if="type === 'plan'" @click="handleDeleteTask">Удалить</button>
+        <button v-if="type !== 'completed'" @click="handleEditDescription">{{ editingDescription ? 'Сохранить' : 'Редактировать' }}</button>
+        <button v-if="type === 'plan'" @click="handleMoveTask">Переместить</button>
+        <button v-if="type === 'work'" @click="handleMoveToNext">Переместить</button>
+        <button v-if="type === 'testing'" @click="handleReturnToPrevious">Вернуть</button>
+        <button v-if="type === 'testing'" @click="handleCompleteTask">Выполнено</button>
+        <br>
+        <textarea v-if="type === 'testing'" v-model="returnReason" placeholder="Введите причину возврата"></textarea>
+        <span v-if="type === 'work' && task.reason">Причина возврата: {{ task.reason }}</span>
+        <span v-if="type === 'completed'">{{ task.check }}</span>
+    </div>
+    `
 });
 Vue.component('app', {
     template: `
@@ -89,6 +109,32 @@ Vue.component('app', {
             testingTask: [],
             completedTask: []
         };
+    },
+    created() {
+        this.loadTasks();
+    },
+    methods: {
+        addTask(task) {
+            this.planTask.push(task);
+            this.saveTasks();
+        },
+        deleteTask(task) {
+            const indexPlan = this.planTask.indexOf(task);
+            const indexWork = this.workTask.indexOf(task);
+            const indexTesting = this.testingTask.indexOf(task);
+            const indexCompleted = this.completedTask.indexOf(task);
+
+            if (indexPlan !== -1) {
+                this.planTask.splice(indexPlan, 1);
+            } else if (indexWork !== -1) {
+                this.workTask.splice(indexWork, 1);
+            } else if (indexTesting !== -1) {
+                this.testingTask.splice(indexTesting, 1);
+            } else if (indexCompleted !== -1) {
+                this.completedTask.splice(indexCompleted, 1);
+            }
+            this.saveTasks();
+        }
     }
 });
 new Vue({

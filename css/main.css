@@ -46,3 +46,29 @@ form button {
     border-radius:10px;
 }
 
+.board {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.column {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+    width: 250px;
+    margin-right: 40px; /* Добавили отступ между колонками */
+}
+
+.title_column {
+    margin-bottom: 15px;
+}
+
+.task {
+    margin-bottom: 30px;
+    padding: 15px; /* Добавили отступы внутри задачи */
+    border-radius: 20px;
+    background-color:rgb(247, 225, 215);
+    box-shadow: 0 2px 4px rgb(247, 225, 215);
+}
