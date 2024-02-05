@@ -1,0 +1,12 @@
+body {
+
+    margin: 0;
+    padding: 0;
+    background-color: rgb(203, 192, 211);
+    color: rgb(79, 89, 91);
+}
+h1{
+    font-family: 'Dancing Script', cursive;
+    text-align: center;
+}
+
