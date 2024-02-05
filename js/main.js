@@ -176,6 +176,29 @@ Vue.component('app', {
         }
         this.saveTasks();
     },
+    moveToNext(task) {
+        const indexWork = this.workTask.indexOf(task);
+        const indexTesting = this.testingTask.indexOf(task);
+
+        if (indexWork !== -1) {
+            this.workTask.splice(indexWork, 1);
+            this.testingTask.push(task);
+        } else if (indexTesting !== -1) {
+            this.testingTask.splice(indexTesting, 1);
+            this.completedTask.push(task);
+            if (task.deadline >= task.createdDate) {
+                task.check = 'Выполнено в срок';
+            } else {
+                task.check = 'Просрочено';
+            }
+        }
+        this.saveTasks();
+    },
+    returnTask(task) {
+        this.testingTask.splice(this.testingTask.indexOf(task), 1);
+        this.workTask.push(task);
+        this.saveTasks();
+    }
 });
 new Vue({
     el: '#app'
